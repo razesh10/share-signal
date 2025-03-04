@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Search, Menu, X } from "lucide-react";
@@ -17,6 +18,14 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const navItems = [
+    { name: 'Home', path: '/' },
+    { name: 'News', path: '/#news' },
+    { name: 'Blog', path: '/blog' },
+    { name: 'Pricing', path: '/pricing' },
+    { name: 'Contact', path: '/#contact' },
+  ];
+
   return (
     <header className={cn(
       "fixed top-0 w-full z-50 transition-all duration-300 ease-smooth", 
@@ -26,20 +35,20 @@ const Navbar = () => {
     )}>
       <div className="container-custom">
         <div className="flex items-center justify-between">
-          <a href="#" className="text-xl font-semibold tracking-tight">
+          <Link to="/" className="text-xl font-semibold tracking-tight">
             Insight<span className="text-accent">News</span>
-          </a>
+          </Link>
           
           <div className="hidden md:flex items-center space-x-8">
             <nav className="flex items-center space-x-6">
-              {['Home', 'News', 'Blogs', 'Contact'].map((item) => (
-                <a 
-                  key={item} 
-                  href={`#${item.toLowerCase()}`} 
+              {navItems.map((item) => (
+                <Link 
+                  key={item.name} 
+                  to={item.path} 
                   className="text-sm font-medium hover:text-accent transition-colors duration-200"
                 >
-                  {item}
-                </a>
+                  {item.name}
+                </Link>
               ))}
             </nav>
             
@@ -70,15 +79,15 @@ const Navbar = () => {
           : "translate-x-full opacity-0 pointer-events-none"
       )}>
         <div className="flex flex-col items-center justify-center h-full space-y-8 p-5">
-          {['Home', 'News', 'Blogs', 'Contact'].map((item) => (
-            <a 
-              key={item} 
-              href={`#${item.toLowerCase()}`} 
+          {navItems.map((item) => (
+            <Link 
+              key={item.name} 
+              to={item.path} 
               className="text-lg font-medium hover:text-accent transition-colors duration-200"
               onClick={() => setMobileMenuOpen(false)}
             >
-              {item}
-            </a>
+              {item.name}
+            </Link>
           ))}
           <Button variant="default" size="default" className="mt-4 bg-accent hover:bg-accent/90 text-white">
             Subscribe
