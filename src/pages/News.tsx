@@ -7,8 +7,16 @@ import Footer from '../components/Footer';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Clock, ArrowRight, Search, Filter } from "lucide-react";
+import { Clock, ArrowRight, Search, Filter, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 // Sample all news data
 const allNews = [
@@ -115,6 +123,8 @@ const categories = ["All", "Politics", "Technology", "Business", "Finance", "Sci
 const News = () => {
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   const filteredNews = allNews.filter(news => {
     // Filter by category
@@ -126,6 +136,72 @@ const News = () => {
     
     return categoryMatch && searchMatch;
   });
+
+  // Calculate pagination
+  const totalItems = filteredNews.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  
+  // Get current items for display
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredNews.slice(indexOfFirstItem, indexOfLastItem);
+
+  // Handle page changes
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    // Scroll to top of page when changing pages
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Generate page numbers for navigation
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxDisplayedPages = 5; // Max number of page buttons to show
+    
+    if (totalPages <= maxDisplayedPages) {
+      // If there are fewer pages than the maximum to display, show all pages
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Always include first page
+      pages.push(1);
+      
+      // Calculate the range of pages to show around current page
+      let startPage = Math.max(2, currentPage - 1);
+      let endPage = Math.min(totalPages - 1, currentPage + 1);
+      
+      // Adjust if we're near the start
+      if (currentPage <= 3) {
+        endPage = Math.min(totalPages - 1, 4);
+      }
+      
+      // Adjust if we're near the end
+      if (currentPage >= totalPages - 2) {
+        startPage = Math.max(2, totalPages - 3);
+      }
+      
+      // Add ellipsis before the range if needed
+      if (startPage > 2) {
+        pages.push("...");
+      }
+      
+      // Add the range of pages
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
+      
+      // Add ellipsis after the range if needed
+      if (endPage < totalPages - 1) {
+        pages.push("...");
+      }
+      
+      // Always include last page
+      pages.push(totalPages);
+    }
+    
+    return pages;
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -208,8 +284,8 @@ const News = () => {
           
           {/* News Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredNews.length > 0 ? (
-              filteredNews.map((news, idx) => (
+            {currentItems.length > 0 ? (
+              currentItems.map((news, idx) => (
                 <motion.div
                   key={news.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -256,27 +332,46 @@ const News = () => {
             )}
           </div>
           
-          {/* Pagination (simplified for this example) */}
+          {/* Pagination */}
           {filteredNews.length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.5 }}
-              className="flex justify-center mt-12"
+              className="mt-12"
             >
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="icon">
-                  <ArrowRight className="h-4 w-4 rotate-180" />
-                </Button>
-                <Button variant="outline" size="sm" className="bg-accent text-white hover:bg-accent/90">1</Button>
-                <Button variant="outline" size="sm">2</Button>
-                <Button variant="outline" size="sm">3</Button>
-                <span className="px-2">...</span>
-                <Button variant="outline" size="sm">10</Button>
-                <Button variant="outline" size="icon">
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+                      className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+
+                  {getPageNumbers().map((page, index) => (
+                    <PaginationItem key={index}>
+                      {page === "..." ? (
+                        <div className="px-4 py-2">...</div>
+                      ) : (
+                        <PaginationLink
+                          isActive={currentPage === page}
+                          onClick={() => handlePageChange(page)}
+                        >
+                          {page}
+                        </PaginationLink>
+                      )}
+                    </PaginationItem>
+                  ))}
+
+                  <PaginationItem>
+                    <PaginationNext 
+                      onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
+                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
             </motion.div>
           )}
         </div>
